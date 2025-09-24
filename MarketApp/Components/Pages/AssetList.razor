@@ -1,0 +1,215 @@
+@page "/assets"
+@using MarketApp.Models
+@using MarketApp.Services
+@inject AssetService AssetService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Software Assets</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col">
+            <h1>Software Asset Management</h1>
+            <p class="text-muted">Manage your software licenses and assets</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="CreateNewAsset">
+                <i class="bi bi-plus-circle"></i> Add New Asset
+            </button>
+        </div>
+    </div>
+
+    @if (assets == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!assets.Any())
+    {
+        <div class="alert alert-info">
+            <h4>No assets found</h4>
+            <p>Click "Add New Asset" to create your first software asset record.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Assets</h5>
+                        <h2>@assets.Count</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">Expiring Soon</h5>
+                        <h2>@expiringSoonCount</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-danger">
+                    <div class="card-body">
+                        <h5 class="card-title">Expired</h5>
+                        <h2>@expiredCount</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Value</h5>
+                        <h2>@totalValue.ToString("C")</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assets Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Asset List</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Application</th>
+                                <th>Company</th>
+                                <th>Subscription Date</th>
+                                <th>Expiration Date</th>
+                                <th>Status</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var asset in assets.OrderBy(a => a.LicenseExpirationDate))
+                            {
+                                <tr class="@GetRowClass(asset)">
+                                    <td>
+                                        <strong>@asset.FullName</strong>
+                                    </td>
+                                    <td>
+                                        <a href="mailto:@asset.Email">@asset.Email</a>
+                                    </td>
+                                    <td>@asset.ApplicationType</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(asset.CompanyUrl))
+                                        {
+                                            <a href="@asset.CompanyUrl" target="_blank" rel="noopener noreferrer">
+                                                @asset.Company
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            @asset.Company
+                                        }
+                                    </td>
+                                    <td>@asset.LicenseSubscriptionDate.ToString("yyyy-MM-dd")</td>
+                                    <td>@asset.LicenseExpirationDate.ToString("yyyy-MM-dd")</td>
+                                    <td>
+                                        <span class="badge @GetStatusBadgeClass(asset)">
+                                            @GetStatusText(asset)
+                                        </span>
+                                    </td>
+                                    <td>@asset.Price.ToString("C")</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button class="btn btn-outline-primary" @onclick="() => EditAsset(asset.Id)">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </button>
+                                            <button class="btn btn-outline-danger" @onclick="() => DeleteAsset(asset.Id)">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<SoftwareAsset>? assets;
+    private int expiringSoonCount;
+    private int expiredCount;
+    private decimal totalValue;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAssets();
+    }
+
+    private async Task LoadAssets()
+    {
+        assets = await AssetService.GetAllAssetsAsync();
+        
+        if (assets != null)
+        {
+            expiringSoonCount = assets.Count(a => a.DaysUntilExpiration <= 30 && a.DaysUntilExpiration >= 0);
+            expiredCount = assets.Count(a => a.IsExpired);
+            totalValue = assets.Sum(a => a.Price);
+        }
+    }
+
+    private void CreateNewAsset()
+    {
+        Navigation.NavigateTo("/assets/create");
+    }
+
+    private void EditAsset(int assetId)
+    {
+        Navigation.NavigateTo($"/assets/edit/{assetId}");
+    }
+
+    private async Task DeleteAsset(int assetId)
+    {
+        if (await AssetService.DeleteAssetAsync(assetId))
+        {
+            await LoadAssets();
+        }
+    }
+
+    private string GetRowClass(SoftwareAsset asset)
+    {
+        if (asset.IsExpired)
+            return "table-danger";
+        if (asset.DaysUntilExpiration <= 30)
+            return "table-warning";
+        return "";
+    }
+
+    private string GetStatusBadgeClass(SoftwareAsset asset)
+    {
+        if (asset.IsExpired)
+            return "bg-danger";
+        if (asset.DaysUntilExpiration <= 30)
+            return "bg-warning";
+        return "bg-success";
+    }
+
+    private string GetStatusText(SoftwareAsset asset)
+    {
+        if (asset.IsExpired)
+            return $"Expired ({Math.Abs(asset.DaysUntilExpiration)} days ago)";
+        if (asset.DaysUntilExpiration <= 30)
+            return $"Expires in {asset.DaysUntilExpiration} days";
+        return $"Active ({asset.DaysUntilExpiration} days remaining)";
+    }
+}

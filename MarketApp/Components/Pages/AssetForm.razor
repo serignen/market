@@ -1,0 +1,218 @@
+@page "/assets/create"
+@page "/assets/edit/{AssetId:int}"
+@using MarketApp.Models
+@using MarketApp.Services
+@using System.ComponentModel.DataAnnotations
+@inject AssetService AssetService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>@(IsEditMode ? "Edit Asset" : "Create Asset")</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="bi bi-@(IsEditMode ? "pencil" : "plus-circle")"></i>
+                        @(IsEditMode ? "Edit Software Asset" : "Create New Software Asset")
+                    </h3>
+                </div>
+                <div class="card-body">
+                    @if (asset == null && IsEditMode)
+                    {
+                        <div class="alert alert-danger">
+                            <h4>Asset Not Found</h4>
+                            <p>The requested asset could not be found.</p>
+                            <button class="btn btn-primary" @onclick="ReturnToAssetList">>
+                                Return to Asset List
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <EditForm Model="asset" OnValidSubmit="HandleValidSubmit" FormName="AssetForm">
+                            <DataAnnotationsValidator />
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="firstName" class="form-label">First Name *</label>
+                                    <InputText id="firstName" class="form-control" @bind-Value="asset!.FirstName" />
+                                    <ValidationMessage For="@(() => asset.FirstName)" class="text-danger" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="lastName" class="form-label">Last Name *</label>
+                                    <InputText id="lastName" class="form-control" @bind-Value="asset!.LastName" />
+                                    <ValidationMessage For="@(() => asset.LastName)" class="text-danger" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address *</label>
+                                <InputText id="email" type="email" class="form-control" @bind-Value="asset!.Email" />
+                                <ValidationMessage For="@(() => asset.Email)" class="text-danger" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="applicationtype" class="form-label">Application Type *</label>
+                                <InputText id="applicationtype" class="form-control" @bind-Value="asset!.ApplicationType" 
+                                          placeholder="e.g., Microsoft Office 365, Adobe Creative Suite" />
+                                <ValidationMessage For="@(() => asset.ApplicationType)" class="text-danger" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="subscriptiondate" class="form-label">License Subscription Date *</label>
+                                    <InputDate id="subscriptiondate" class="form-control" @bind-Value="asset!.LicenseSubscriptionDate" />
+                                    <ValidationMessage For="@(() => asset.LicenseSubscriptionDate)" class="text-danger" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="expirationdate" class="form-label">License Expiration Date *</label>
+                                    <InputDate id="expirationdate" class="form-control" @bind-Value="asset!.LicenseExpirationDate" />
+                                    <ValidationMessage For="@(() => asset.LicenseExpirationDate)" class="text-danger" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="company" class="form-label">Company *</label>
+                                <InputText id="company" class="form-control" @bind-Value="asset!.Company" />
+                                <ValidationMessage For="@(() => asset.Company)" class="text-danger" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="companyurl" class="form-label">Company URL</label>
+                                <InputText id="companyurl" type="url" class="form-control" @bind-Value="asset!.CompanyUrl" 
+                                          placeholder="https://www.company.com" />
+                                <ValidationMessage For="@(() => asset.CompanyUrl)" class="text-danger" />
+                                <div class="form-text">Optional: Enter the company's website URL</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="price" class="form-label">Price *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <InputNumber id="price" class="form-control" @bind-Value="asset!.Price" 
+                                               step="0.01" min="0.01" />
+                                </div>
+                                <ValidationMessage For="@(() => asset.Price)" class="text-danger" />
+                            </div>
+
+                            @if (validationErrors.Any())
+                            {
+                                <div class="alert alert-danger">
+                                    <h6>Please correct the following errors:</h6>
+                                    <ul class="mb-0">
+                                        @foreach (var error in validationErrors)
+                                        {
+                                            <li>@error</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" @onclick="Cancel">
+                                    <i class="bi bi-arrow-left"></i> Cancel
+                                </button>
+                                <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                    @if (isSubmitting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    }
+                                    <i class="bi bi-@(IsEditMode ? "check" : "plus")"></i>
+                                    @(IsEditMode ? "Update Asset" : "Create Asset")
+                                </button>
+                            </div>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int? AssetId { get; set; }
+
+    private SoftwareAsset? asset = new();
+    private List<string> validationErrors = new();
+    private bool isSubmitting = false;
+
+    private bool IsEditMode => AssetId.HasValue;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEditMode && AssetId.HasValue)
+        {
+            asset = await AssetService.GetAssetByIdAsync(AssetId.Value);
+        }
+        else
+        {
+            // Initialize with default values for new asset
+            asset = new SoftwareAsset
+            {
+                LicenseSubscriptionDate = DateTime.Today,
+                LicenseExpirationDate = DateTime.Today.AddYears(1)
+            };
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (asset == null) return;
+
+        isSubmitting = true;
+        validationErrors.Clear();
+
+        try
+        {
+            // Additional custom validation
+            if (asset.LicenseExpirationDate <= asset.LicenseSubscriptionDate)
+            {
+                validationErrors.Add("License expiration date must be after the subscription date.");
+            }
+
+            if (validationErrors.Any())
+            {
+                isSubmitting = false;
+                return;
+            }
+
+            if (IsEditMode)
+            {
+                var result = await AssetService.UpdateAssetAsync(asset);
+                if (result == null)
+                {
+                    validationErrors.Add("Failed to update asset. Asset may not exist.");
+                    isSubmitting = false;
+                    return;
+                }
+            }
+            else
+            {
+                await AssetService.CreateAssetAsync(asset);
+            }
+
+            Navigation.NavigateTo("/assets");
+        }
+        catch (Exception ex)
+        {
+            validationErrors.Add($"An error occurred: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void ReturnToAssetList()
+    {
+        Navigation.NavigateTo("/assets");
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/assets");
+    }
+}

@@ -1,0 +1,132 @@
+﻿@page "/"
+
+<PageTitle>Home - Software Asset Management</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+                <h1 class="display-4">Software Asset Management</h1>
+                <p class="lead">
+                    Manage your software licenses, track expiration dates, and keep your organization compliant with our comprehensive asset management solution.
+                </p>
+                <hr class="my-4" style="border-color: rgba(255,255,255,0.3);">
+                <p>
+                    Get started by viewing your existing assets or creating a new software asset record.
+                </p>
+                <div class="d-flex gap-3">
+                    <a class="btn btn-light btn-lg" href="/assets" role="button">
+                        <i class="bi bi-box-seam"></i> View All Assets
+                    </a>
+                    <a class="btn btn-outline-light btn-lg" href="/assets/create" role="button">
+                        <i class="bi bi-plus-circle"></i> Add New Asset
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-shield-check"></i> License Management
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Track software licenses, monitor expiration dates, and ensure compliance across your organization. 
+                        Never let a critical license expire unexpectedly.
+                    </p>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check text-success"></i> Track license expiration dates</li>
+                        <li><i class="bi bi-check text-success"></i> Monitor subscription periods</li>
+                        <li><i class="bi bi-check text-success"></i> Manage license holders</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up"></i> Cost Management
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Keep track of software costs and make informed decisions about renewals and new purchases. 
+                        Monitor your total software investment.
+                    </p>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check text-success"></i> Track software costs</li>
+                        <li><i class="bi bi-check text-success"></i> View total asset value</li>
+                        <li><i class="bi bi-check text-success"></i> Budget planning support</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Alerts & Notifications
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Stay ahead of license renewals with automatic alerts for expiring software. 
+                        Get notified before licenses expire to avoid service interruptions.
+                    </p>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check text-success"></i> Expiration warnings</li>
+                        <li><i class="bi bi-check text-success"></i> Visual status indicators</li>
+                        <li><i class="bi bi-check text-success"></i> Priority-based alerts</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Getting Started
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>📝 Create Your First Asset</h6>
+                            <p>Start by adding your software assets with all the relevant information including license dates, contact details, and pricing.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>📊 Monitor and Manage</h6>
+                            <p>Use the asset list to view all your software, check expiration status, and take action on licenses that need attention.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .jumbotron {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    }
+    
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: box-shadow 0.15s ease-in-out;
+    }
+    
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+</style>
